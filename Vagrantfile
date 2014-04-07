@@ -1,42 +1,31 @@
-require 'berkshelf/vagrant'
-
-Vagrant::Config.run do |config|
-  config.vm.host_name = "drupal-berkshelf"
-
-  config.vm.box = "opscode-ubuntu-12.04"
-  config.vm.box_url = "https://opscode-vm.s3.amazonaws.com/vagrant/boxes/opscode-ubuntu-12.04.box"
-
-  config.vm.customize ["modifyvm", :id, "--memory", "512"]
-
-  config.vm.network :hostonly, "33.33.33.11"
-
-  config.vm.forward_port 80, 8080
-  config.vm.share_folder("v-root", "/vagrant", ".")
-
-  config.vm.provision :shell, :inline => "sudo aptitude update"
-
+Vagrant.configure("2") do |config|
+  config.vm.hostname = "drupal-cookbook"
+  config.vm.box = "precise64"
+  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  config.vm.network :private_network, ip: "33.33.33.10"
+  config.ssh.forward_agent = true
   config.ssh.max_tries = 40
   config.ssh.timeout   = 120
-
+  config.omnibus.chef_version = "11.10.4"
+  config.berkshelf.enabled = true
   config.vm.provision :chef_solo do |chef|
     chef.json = {
      :www_root => '/vagrant/public',
      :mysql => {
-        :server_root_password => "rootpass",
-        :server_repl_password => "replpass",
-        :server_debian_password => "debpass"
+        :server_root_password => "randompassword",
+        :server_repl_password => "randompassword",
+        :server_debian_password => "randompassword"
      },
      :drupal => {
         :db => {
-          :password => "drupalpass"
+          :password => "randompassword"
         },
-        :dir => "/vagrant/mysite"
+        :dir => "/vagrant/drupal-site"
       },
       :hosts => {
         :localhost_aliases => ["drupal.vbox.local", "dev-site.vbox.local"]
-      }  
+      }
     }
-
     chef.run_list = [
       "recipe[drupal::default]"
     ]

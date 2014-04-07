@@ -5,4 +5,4 @@ tmp/
 .kitchen
 *.swp
 .rvmrc
-
+.vagrant

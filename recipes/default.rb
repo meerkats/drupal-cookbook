@@ -57,11 +57,19 @@ execute "create #{node['drupal']['db']['database']} database" do
   not_if "mysql -h #{node['drupal']['db']['host']} -u root -p#{node['mysql']['server_root_password']} --silent --skip-column-names --execute=\"show databases like '#{node['drupal']['db']['database']}'\" | grep #{node['drupal']['db']['database']}"
 end
 
+directory "#{node.webapp.appdir}/sites/default/files" do
+  mode "0777"
+  action :create
+  group node['apache']['group']
+  recursive true
+  not_if { ::File.directory?("#{node.webapp.appdir}/sites/default/files") }
+end
+
 template "#{node.apache.dir}/sites-available/#{node.drupal.site.host}.conf" do
   source "drupal.conf.erb"
   mode 0777
-  owner node.apache.user
-  group node.apache.user
+  group node['apache']['user']
+  group node['apache']['group']
 end
 
 apache_site "#{node.drupal.site.host}.conf"

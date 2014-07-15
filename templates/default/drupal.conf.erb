@@ -1,15 +1,14 @@
-<VirtualHost *:<%= @node[:drupal][:apache][:port] %>>
-  ServerName <%= @node[:drupal][:site][:host] %>
+<VirtualHost *:80>
+  ServerName <%= @node[:webapp][:domain] %>
   DocumentRoot <%= @node[:drupal][:dir] %>
 
   <Directory <%= @node[:drupal][:dir] %>>
     Options FollowSymLinks
-    Order allow,deny
-    Allow from all
+    Require all granted
   </Directory>
 
-  ErrorLog <%= @node[:apache][:log_dir] %>/<%= @node[:drupal][:site][:host] %>-error.log
-  CustomLog <%= @node[:apache][:log_dir] %>/<%= @node[:drupal][:site][:host] %>-access.log combined
+  ErrorLog <%= @node[:apache][:log_dir] %>/<%= @node[:webapp][:domain] %>-error.log
+  CustomLog <%= @node[:apache][:log_dir] %>/<%= @node[:webapp][:domain] %>-access.log combined
 
   <IfModule mod_rewrite.c>
     RewriteEngine On

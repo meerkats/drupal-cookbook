@@ -17,23 +17,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+2
+# install apache webserver
 
-include_recipe %w{apt apache2 apache2::mod_php5 apache2::mod_rewrite apache2::mod_expires}
-include_recipe %w{php php::module_mysql php::module_gd}
-include_recipe "drupal::drush"
+include_recipe "apache2"
+include_recipe "apache2::mod_php5"
+include_recipe "apache2::mod_rewrite"
+include_recipe "apache2::mod_expires"
 
-# Centos does not include the php-dom extension in it's minimal php install.
-case node['platform_family']
-when 'rhel', 'fedora'
-  package 'php-dom' do
-    action :install
-  end
-end
+# install php
+
+include_recipe "php"
+include_recipe "php::module_mysql"
+include_recipe "php::module_gd"
+
+# install mysql database
 
 include_recipe "mysql::server"
 
+include_recipe "drupal::drush"
+
+# setup database and user with required previleges
+
 execute "mysql-install-drupal-privileges" do
-  command "/usr/bin/mysql -h #{node['drupal']['db']['host']} -u root -p#{node['mysql']['server_root_password']} < /etc/mysql/drupal-grants.sql"
+  command "/usr/bin/mysql -h #{node[:drupal][:db][:host]} -u root -p#{node[:mysql][:server_root_password]} < /etc/mysql/drupal-grants.sql"
   action :nothing
 end
 
@@ -44,34 +51,28 @@ template "/etc/mysql/drupal-grants.sql" do
   group "root"
   mode "0600"
   variables(
-    :user     => node['drupal']['db']['user'],
-    :password => node['drupal']['db']['password'],
-    :database => node['drupal']['db']['database'],
-    :host => node['drupal']['site']['host']
+    :user => node[:drupal][:db][:user],
+    :password => node[:drupal][:db][:password],
+    :database => node[:drupal][:db][:database],
+    :host => node[:drupal][:db][:host]
   )
   notifies :run, "execute[mysql-install-drupal-privileges]", :immediately
 end
 
-execute "create #{node['drupal']['db']['database']} database" do
-  command "/usr/bin/mysqladmin -h #{node['drupal']['db']['host']} -u root -p#{node['mysql']['server_root_password']} create #{node['drupal']['db']['database']}"
-  not_if "mysql -h #{node['drupal']['db']['host']} -u root -p#{node['mysql']['server_root_password']} --silent --skip-column-names --execute=\"show databases like '#{node['drupal']['db']['database']}'\" | grep #{node['drupal']['db']['database']}"
+execute "create #{node[:drupal][:db][:database]} database" do
+  command "/usr/bin/mysqladmin -h #{node[:drupal][:db][:host]} -u root -p#{node[:mysql][:server_root_password]} create #{node[:drupal][:db][:database]}"
+  not_if "mysql -h #{node[:drupal][:db][:host]} -u root -p#{node[:mysql][:server_root_password]} --silent --skip-column-names --execute=\"show databases like '#{node[:drupal][:db][:database]}'\" | grep #{node[:drupal][:db][:database]}"
 end
 
-directory "#{node.webapp.appdir}/sites/default/files" do
-  mode "0777"
-  action :create
-  group node['apache']['group']
-  recursive true
-  not_if { ::File.directory?("#{node.webapp.appdir}/sites/default/files") }
-end
+# setup apache configuration
 
-template "#{node.apache.dir}/sites-available/#{node.drupal.site.host}.conf" do
+template "#{node[:apache][:dir]}/sites-available/#{node[:webapp][:domain]}.conf" do
   source "drupal.conf.erb"
   mode 0777
-  group node['apache']['user']
-  group node['apache']['group']
+  group node[:apache][:user]
+  group node[:apache][:group]
 end
 
-apache_site "#{node.drupal.site.host}.conf"
+apache_site "#{node[:webapp][:domain]}.conf"
 
 include_recipe "drupal::cron"

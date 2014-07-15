@@ -1,4 +1,4 @@
-# <a name="title"></a> drupal-cookbook [![Build Status](https://secure.travis-ci.org/mdxp/drupal-cookbook.png?branch=master)](http://travis-ci.org/mdxp/drupal-cookbook)
+# drupal-cookbook
 
 Description
 ===========

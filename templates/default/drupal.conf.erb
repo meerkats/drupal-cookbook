@@ -5,6 +5,7 @@
   <Directory <%= @node[:drupal][:dir] %>>
     Options FollowSymLinks
     Require all granted
+    AllowOverride All
   </Directory>
 
   ErrorLog <%= @node[:apache][:log_dir] %>/<%= @node[:webapp][:domain] %>-error.log

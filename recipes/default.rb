@@ -64,14 +64,15 @@ execute "create #{node[:drupal][:db][:database]} database" do
   not_if "mysql -h #{node[:drupal][:db][:host]} -u root -p#{node[:mysql][:server_root_password]} --silent --skip-column-names --execute=\"show databases like '#{node[:drupal][:db][:database]}'\" | grep #{node[:drupal][:db][:database]}"
 end
 
-template "#{node['drupal']['dir']}/sites/default/settings.php" do
+template "#{node[:drupal][:dir]}/sites/default/settings.php" do
+  # Hardcoded to version 7 for now.
   source "d7.settings.php.erb"
   mode "0644"
   variables(
-    'database'        => node[:drupal][:db][:database],
-    'user'            => node[:drupal][:db][:user],
-    'password'        => node[:drupal][:db][:password],
-    'host'            => node[:drupal][:db][:host]
+    :database        => node[:drupal][:db][:database],
+    :user            => node[:drupal][:db][:user],
+    :password        => node[:drupal][:db][:password],
+    :host            => node[:drupal][:db][:host]
   )
 end
 

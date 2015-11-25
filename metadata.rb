@@ -12,7 +12,7 @@ depends "mysql", "~> 5.0"
 depends "mysql-chef_gem", "~> 0.0"
 depends "database", "= 2.3.1"
 
-%w{ apt php apache2 mysql openssl firewall cron }.each do |cb|
+%w{ apt php apache2 openssl firewall cron }.each do |cb|
   depends cb
 end
 
